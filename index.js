@@ -1,7 +1,7 @@
 const { Engine, Render, World, Runner, Bodies } = Matter;
 
-const canvasWidth = 600;
-const canvasHeight = 600;
+const canvasWidth = window.innerWidth - 20;
+const canvasHeight = window.innerHeight - 20;
 
 const engine = Engine.create()
 const { world } = engine;
@@ -9,6 +9,7 @@ const render = Render.create({
     element: document.body,
     engine,
     options: {
+        wireframes: false,
         width: canvasWidth,
         height: canvasHeight
     }
@@ -18,24 +19,36 @@ Runner.run(Runner.create(), engine);
 
 //walls
 const walls = [
-    Bodies.rectangle( 1/2*canvasWidth, 0, canvasWidth, 40, {
-        isStatic: true
+    Bodies.rectangle( 1/2*canvasWidth, 0, canvasWidth, 4, {
+        isStatic: true,
+        render: {
+            fillStyle: "black"
+        }
     }),
-    Bodies.rectangle( 0, 1/2*canvasHeight, 40, canvasHeight, {
-        isStatic: true
+    Bodies.rectangle( 0, 1/2*canvasHeight, 4, canvasHeight, {
+        isStatic: true,
+        render: {
+            fillStyle: "black"
+        }
     }),
-    Bodies.rectangle( 1/2*canvasWidth, canvasHeight, canvasWidth, 40, {
-        isStatic: true
+    Bodies.rectangle( 1/2*canvasWidth, canvasHeight, canvasWidth, 4, {
+        isStatic: true,
+        render: {
+            fillStyle: "black"
+        }
     }),
-    Bodies.rectangle( canvasWidth, 1/2*canvasHeight, 40, canvasHeight, {
-        isStatic: true
+    Bodies.rectangle( canvasWidth, 1/2*canvasHeight, 4, canvasHeight, {
+        isStatic: true,
+        render: {
+            fillStyle: "black"
+        }
     })
 ]
 
 World.add(world, walls)
 
-const columns = 4;
-const rows = 4;
+const columns = 25;
+const rows = Math.floor(columns * canvasHeight / canvasWidth);
 
 const shuffle = arr =>{
     let counter = arr.length;
@@ -97,11 +110,51 @@ const stepThroughCell = (row, column)=>{
                 horizontals[Math.min(row, nextRow)][column] = true;
                 break;
         }
-        console.log(nextRow, nextColumn)
         stepThroughCell(nextRow, nextColumn)
     }
-    console.log('none')
 }
 
 
-stepThroughCell(1, 1)
+stepThroughCell(startRow, startColumn)
+
+const unitColumn = canvasWidth / columns;
+const unitRow = canvasHeight / rows;
+
+verticals.forEach((row, idxRow)=>{
+    let y = unitRow/2 + idxRow*unitRow;
+    row.forEach((vertical, idx)=>{
+        if(!vertical){
+            let x = unitColumn * (idx + 1);
+            const verticalWall = Bodies.rectangle(x, y, 2, unitRow, {
+                isStatic: true,
+                render: {
+                    fillStyle: "black"
+                }
+            })
+            World.add(world, verticalWall);
+        }
+        return vertical;
+    })
+    return row;
+})
+
+horizontals.forEach((row, idxRow)=>{
+    let y = unitRow * (idxRow + 1);
+    row.forEach((horizontal, idx)=>{
+        if(!horizontal){
+            let x = unitColumn/2 + unitColumn*(idx);
+            const horizontalWall = Bodies.rectangle(x, y, unitColumn, 2, {
+                isStatic: true,
+                render: {
+                    fillStyle: "black"
+                }
+            })
+            World.add(world, horizontalWall);
+        }
+        return horizontal;
+    })
+    return row;
+})
+
+
+document.querySelector('canvas').style.background = "white"
