@@ -4,7 +4,7 @@ document.body.style.overflow = "hidden";
 const canvasWidth = window.innerWidth;
 const canvasHeight = window.innerHeight;
 const borderWidth = 3;
-const columns = 10;
+const columns = 25;
 const rows = Math.floor(columns * canvasHeight / canvasWidth);
 const unitColumn = canvasWidth / columns;
 const unitRow = canvasHeight / rows;
@@ -144,7 +144,7 @@ verticals.forEach((row, idxRow)=>{
                 isStatic: true,
                 label: 'wall',
                 render: {
-                    fillStyle: "black"
+                    fillStyle: "orange"
                 }
             })
             World.add(world, verticalWall);
@@ -163,7 +163,7 @@ horizontals.forEach((row, idxRow)=>{
                 isStatic: true,
                 label: 'wall',
                 render: {
-                    fillStyle: "black"
+                    fillStyle: "orange"
                 }
             })
             World.add(world, horizontalWall);
@@ -173,7 +173,7 @@ horizontals.forEach((row, idxRow)=>{
     return row;
 })
 
-container.querySelector('canvas').style.background = "white"
+container.querySelector('canvas').style.background = "black"
 
 
 const ball = Bodies.circle( unitRow/2, unitColumn/2, 0.25 * Math.min(unitRow, unitColumn), {
