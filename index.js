@@ -1,12 +1,20 @@
-const { Engine, Render, World, Runner, Bodies } = Matter;
+const { Engine, Render, World, Runner, Bodies, Body } = Matter;
 
 const canvasWidth = window.innerWidth - 20;
 const canvasHeight = window.innerHeight - 20;
+const borderWidth = 5;
+const columns = 10;
+const rows = Math.floor(columns * canvasHeight / canvasWidth);
+const unitColumn = canvasWidth / columns;
+const unitRow = canvasHeight / rows;
+const container = document.querySelector(".container");
+
 
 const engine = Engine.create()
+engine.world.gravity.y = 0;
 const { world } = engine;
 const render = Render.create({
-    element: document.body,
+    element: container,
     engine,
     options: {
         wireframes: false,
@@ -19,36 +27,43 @@ Runner.run(Runner.create(), engine);
 
 //walls
 const walls = [
-    Bodies.rectangle( 1/2*canvasWidth, 0, canvasWidth, 4, {
+    Bodies.rectangle( 1/2*canvasWidth, 0, canvasWidth, borderWidth + 4, {
         isStatic: true,
         render: {
-            fillStyle: "black"
+            fillStyle: "white"
         }
     }),
-    Bodies.rectangle( 0, 1/2*canvasHeight, 4, canvasHeight, {
+    Bodies.rectangle( 0, 1/2*canvasHeight, borderWidth + 4, canvasHeight, {
         isStatic: true,
         render: {
-            fillStyle: "black"
+            fillStyle: "white"
         }
     }),
-    Bodies.rectangle( 1/2*canvasWidth, canvasHeight, canvasWidth, 4, {
+    Bodies.rectangle( 1/2*canvasWidth, canvasHeight, canvasWidth, borderWidth + 4, {
         isStatic: true,
         render: {
-            fillStyle: "black"
+            fillStyle: "white"
         }
     }),
-    Bodies.rectangle( canvasWidth, 1/2*canvasHeight, 4, canvasHeight, {
+    Bodies.rectangle( canvasWidth, 1/2*canvasHeight, borderWidth + 4, canvasHeight, {
         isStatic: true,
         render: {
-            fillStyle: "black"
+            fillStyle: "white"
         }
     })
 ]
 
 World.add(world, walls)
 
-const columns = 25;
-const rows = Math.floor(columns * canvasHeight / canvasWidth);
+
+const goal = Bodies.rectangle(canvasWidth - unitColumn/2, canvasHeight - unitRow/2, unitColumn - borderWidth, unitRow - borderWidth, {
+    render:{
+        isStatic: true,
+        fillStyle: "green"
+    }
+})
+
+World.add(world, goal)
 
 const shuffle = arr =>{
     let counter = arr.length;
@@ -117,18 +132,16 @@ const stepThroughCell = (row, column)=>{
 
 stepThroughCell(startRow, startColumn)
 
-const unitColumn = canvasWidth / columns;
-const unitRow = canvasHeight / rows;
 
 verticals.forEach((row, idxRow)=>{
     let y = unitRow/2 + idxRow*unitRow;
     row.forEach((vertical, idx)=>{
         if(!vertical){
             let x = unitColumn * (idx + 1);
-            const verticalWall = Bodies.rectangle(x, y, 2, unitRow, {
+            const verticalWall = Bodies.rectangle(x, y, borderWidth, unitRow, {
                 isStatic: true,
                 render: {
-                    fillStyle: "black"
+                    fillStyle: "white"
                 }
             })
             World.add(world, verticalWall);
@@ -143,10 +156,10 @@ horizontals.forEach((row, idxRow)=>{
     row.forEach((horizontal, idx)=>{
         if(!horizontal){
             let x = unitColumn/2 + unitColumn*(idx);
-            const horizontalWall = Bodies.rectangle(x, y, unitColumn, 2, {
+            const horizontalWall = Bodies.rectangle(x, y, unitColumn, borderWidth, {
                 isStatic: true,
                 render: {
-                    fillStyle: "black"
+                    fillStyle: "white"
                 }
             })
             World.add(world, horizontalWall);
@@ -156,5 +169,37 @@ horizontals.forEach((row, idxRow)=>{
     return row;
 })
 
+container.querySelector('canvas').style.background = "black"
 
-document.querySelector('canvas').style.background = "white"
+
+const ball = Bodies.circle( unitRow/2, unitColumn/2, 0.25 * Math.min(unitRow, unitColumn), {
+    isStatic: false,
+    render: {
+        fillStyle: "blue"
+    }
+})
+
+World.add(world, ball)
+
+const stop = (body, delay = 100) =>{
+    setTimeout(()=>{
+        Body.setVelocity(body, {x: 0, y: 0})
+    }, delay)
+}
+
+document.addEventListener('keydown', event =>{
+    const {x, y} = ball.velocity;
+    const velocity = 5;
+    console.log(x, y)
+    const {keyCode} = event;
+    if (keyCode === 87){
+        Body.setVelocity(ball, {x, y: -velocity});
+    } else if (keyCode === 65){
+        Body.setVelocity(ball, {x: -velocity, y});
+    } else if (keyCode === 83){
+        Body.setVelocity(ball, {x, y: velocity});
+    } else if (keyCode === 68) {
+        Body.setVelocity(ball, {x: velocity, y});
+    }
+    stop(ball);
+})
