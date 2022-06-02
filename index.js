@@ -1,8 +1,9 @@
-const { Engine, Render, World, Runner, Bodies, Body } = Matter;
+const { Engine, Render, World, Runner, Bodies, Body, Events } = Matter;
+document.body.style.overflow = "hidden";
 
-const canvasWidth = window.innerWidth - 20;
-const canvasHeight = window.innerHeight - 20;
-const borderWidth = 5;
+const canvasWidth = window.innerWidth;
+const canvasHeight = window.innerHeight;
+const borderWidth = 3;
 const columns = 10;
 const rows = Math.floor(columns * canvasHeight / canvasWidth);
 const unitColumn = canvasWidth / columns;
@@ -30,25 +31,25 @@ const walls = [
     Bodies.rectangle( 1/2*canvasWidth, 0, canvasWidth, borderWidth + 4, {
         isStatic: true,
         render: {
-            fillStyle: "white"
+            fillStyle: "black"
         }
     }),
     Bodies.rectangle( 0, 1/2*canvasHeight, borderWidth + 4, canvasHeight, {
         isStatic: true,
         render: {
-            fillStyle: "white"
+            fillStyle: "black"
         }
     }),
     Bodies.rectangle( 1/2*canvasWidth, canvasHeight, canvasWidth, borderWidth + 4, {
         isStatic: true,
         render: {
-            fillStyle: "white"
+            fillStyle: "black"
         }
     }),
     Bodies.rectangle( canvasWidth, 1/2*canvasHeight, borderWidth + 4, canvasHeight, {
         isStatic: true,
         render: {
-            fillStyle: "white"
+            fillStyle: "black"
         }
     })
 ]
@@ -56,10 +57,11 @@ const walls = [
 World.add(world, walls)
 
 
-const goal = Bodies.rectangle(canvasWidth - unitColumn/2, canvasHeight - unitRow/2, unitColumn - borderWidth, unitRow - borderWidth, {
+const goal = Bodies.rectangle(canvasWidth - unitColumn/2, canvasHeight - unitRow/2, unitColumn/2, unitRow/2, {
+    label : 'goal',
+    isStatic: true,
     render:{
-        isStatic: true,
-        fillStyle: "green"
+        fillStyle: "green",
     }
 })
 
@@ -140,8 +142,9 @@ verticals.forEach((row, idxRow)=>{
             let x = unitColumn * (idx + 1);
             const verticalWall = Bodies.rectangle(x, y, borderWidth, unitRow, {
                 isStatic: true,
+                label: 'wall',
                 render: {
-                    fillStyle: "white"
+                    fillStyle: "black"
                 }
             })
             World.add(world, verticalWall);
@@ -158,8 +161,9 @@ horizontals.forEach((row, idxRow)=>{
             let x = unitColumn/2 + unitColumn*(idx);
             const horizontalWall = Bodies.rectangle(x, y, unitColumn, borderWidth, {
                 isStatic: true,
+                label: 'wall',
                 render: {
-                    fillStyle: "white"
+                    fillStyle: "black"
                 }
             })
             World.add(world, horizontalWall);
@@ -169,13 +173,14 @@ horizontals.forEach((row, idxRow)=>{
     return row;
 })
 
-container.querySelector('canvas').style.background = "black"
+container.querySelector('canvas').style.background = "white"
 
 
 const ball = Bodies.circle( unitRow/2, unitColumn/2, 0.25 * Math.min(unitRow, unitColumn), {
     isStatic: false,
+    label: "ball",
     render: {
-        fillStyle: "blue"
+        fillStyle: "red",
     }
 })
 
@@ -189,8 +194,7 @@ const stop = (body, delay = 100) =>{
 
 document.addEventListener('keydown', event =>{
     const {x, y} = ball.velocity;
-    const velocity = 5;
-    console.log(x, y)
+    const velocity = unitRow*0.1;
     const {keyCode} = event;
     if (keyCode === 87){
         Body.setVelocity(ball, {x, y: -velocity});
@@ -203,3 +207,30 @@ document.addEventListener('keydown', event =>{
     }
     stop(ball);
 })
+
+//detect win
+
+const onWin = event =>{
+    const labels = ['ball', 'goal']
+    event.pairs.forEach( pair => {
+        if(labels.includes(pair.bodyA.label) && labels.includes(pair.bodyA.label)){
+            Events.off(engine, 'collisionStart', onWin);
+            engine.world.gravity.y = 1;
+            world.bodies.forEach(body => {
+                if(!(body.label === 'Rectangle Body')){
+                    Body.setStatic(body, false);
+                }
+            })
+            const winMsg = document.createElement('div');
+            winMsg.classList.add('msg')
+            winMsg.style.marginTop = `${-2* canvasHeight / 3}px`;
+            winMsg.innerText = "You Win"
+            setTimeout(()=>{document.body.appendChild(winMsg)}, 1000);
+        }
+        return pair
+    })
+}
+
+Events.on(engine, 'collisionStart', onWin);
+
+console.log("done")

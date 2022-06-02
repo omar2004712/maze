@@ -1,4 +1,17 @@
 .container{
     width: fit-content;
     margin: auto;
+    z-index: -1;
+}
+
+.msg {
+    font-size: 3em;
+    font-family: cursive;
+    width: fit-content;
+    margin: auto;
+    z-index: 10;
+}
+
+body {
+    margin: 0px;
 }
